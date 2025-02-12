@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase/config';
 import { Vehicle } from '../types/vehicle';
 import { useAuthStore } from '../store/authStore';
@@ -15,10 +15,21 @@ export const useVehicles = () => {
   useEffect(() => {
     if (!user) return;
 
-    const vehiclesQuery = query(
-      collection(db, 'vehicles'),
-      orderBy('createdAt', 'desc')
-    );
+    // Abfrage basierend auf Benutzerrolle
+    let vehiclesQuery;
+    if (user.role === 'employee_normal') {
+      // Für normale Mitarbeiter nur private Fahrzeuge
+      vehiclesQuery = query(
+        collection(db, 'vehicles'),
+        orderBy('createdAt', 'desc')
+      );
+    } else {
+      // Für alle anderen Rollen alle Fahrzeuge
+      vehiclesQuery = query(
+        collection(db, 'vehicles'),
+        orderBy('createdAt', 'desc')
+      );
+    }
 
     const unsubscribe = onSnapshot(
       vehiclesQuery,
@@ -31,26 +42,44 @@ export const useVehicles = () => {
         const vehicleData: Vehicle[] = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
+          
           // For employer role, only show company and salary vehicles
           if (user.role === 'employer' && data.categories?.includes('standard')) {
             return;
           }
-          vehicleData.push({ 
-            id: doc.id, 
-            ...data 
-          } as Vehicle);
 
-          // Debug log each vehicle's data
+          // Debug log each vehicle's data with isPrivate field
           console.log('Vehicle data:', {
             id: doc.id,
             brand: data.brand,
             model: data.model,
+            isPrivate: data.isPrivate,
+            isPrivateType: typeof data.isPrivate,
             categories: data.categories,
             isSalary: data.categories?.includes('salary'),
             basePrice: data.basePrice,
             salaryConversionPrice: data.salaryConversionPrice,
-            priceMatrix: data.priceMatrix
+            priceMatrix: data.priceMatrix,
+            brokerId: data.brokerId,
+            userRole: user.role,
+            userId: user.id
           });
+
+          // Für normale Mitarbeiter nur private Fahrzeuge anzeigen
+          if (user.role === 'employee_normal') {
+            // Behandle alle Fahrzeuge als privat, außer wenn explizit false gesetzt ist
+            if (data.isPrivate !== false) {
+              vehicleData.push({
+                id: doc.id,
+                ...data
+              } as Vehicle);
+            }
+          } else {
+            vehicleData.push({
+              id: doc.id,
+              ...data
+            } as Vehicle);
+          }
         });
 
         console.log('Total vehicles fetched:', {

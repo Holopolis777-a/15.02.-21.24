@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Common functions
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -328,6 +330,8 @@ service cloud.firestore {
       // Enhanced read rule to allow brokers to read their own and sub-broker data
       allow read: if isAuthenticated() && (
         isAdmin() ||
+        // Allow reading during registration
+        request.auth.token.email == brokerEmail ||
         (isBroker() && (
           request.auth.token.email == brokerEmail ||
           resource.data.parentBrokerId == request.auth.uid ||
@@ -405,13 +409,13 @@ service cloud.firestore {
 
     match /vehicles/{vehicleId} {
       allow read: if isAuthenticated() && (
+        // Admin, Broker, Employer und Customer können alle Fahrzeuge sehen
         isAdmin() ||
-        (isBroker() && (
-          resource.data.brokerId == request.auth.uid ||
-          // Allow parent brokers to read vehicles from their sub-brokers
-          (exists(/databases/$(database)/documents/brokers/$(resource.data.brokerId)) &&
-           get(/databases/$(database)/documents/brokers/$(resource.data.brokerId)).data.parentBrokerId == request.auth.uid)
-        ))
+        isBroker() ||
+        isEmployer() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer' ||
+        // Normale Mitarbeiter dürfen alle Fahrzeuge sehen
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'employee_normal')
       );
       allow create, update, delete: if isAdmin();
     }
@@ -530,19 +534,12 @@ service cloud.firestore {
     }
 
     match /customerInvites/{inviteId} {
-      allow read: if isAuthenticated() && (
-        isAdmin() ||
-        isBroker() && (
-          resource.data.brokerId == request.auth.uid ||
-          exists(/databases/$(database)/documents/customerInvites/$(inviteId)) &&
-          get(/databases/$(database)/documents/customerInvites/$(inviteId)).data.brokerId == request.auth.uid
-        )
-      );
+      allow read: if true;  // Erlaube Lesen für die Validierung während der Registrierung
       allow create: if request.auth != null && (
         isAdmin() ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker'
       );
-      allow update: if request.auth != null && (
+      allow update: if isAuthenticated() && (
         isAdmin() ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker' ||
         // Erlaube Updates während der Kundenregistrierung
@@ -596,7 +593,8 @@ service cloud.firestore {
 
     match /verifications/{verificationId} {
       allow read: if true;
-      allow create: if isAuthenticated() && (
+      allow get: if true; // Explizit erlauben, einzelne Verifikationen zu lesen
+      allow create: if request.auth != null && (
         isAdmin() ||
         (isBroker() && (
           // Allow brokers to create verifications
@@ -619,16 +617,17 @@ service cloud.firestore {
         )) ||
         (
           // Allow verification updates during registration
-          resource.data.type == 'broker_invite' &&
-          (
-            // Allow any verification updates during broker registration
-            resource.data.email == request.auth.token.email ||
-            // Or if user document exists with broker role
-            (
-              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker'
-            )
-          )
+          // Erlaube Zugriff auf Kundeneinladungen
+          (resource.data.type == 'customer_invite') ||
+          // Erlaube Broker-Einladungen wie bisher
+          (resource.data.type == 'broker_invite' &&
+           (
+             resource.data.email == request.auth.token.email ||
+             (
+               exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker'
+             )
+           ))
         ) ||
         (
           // Allow other verification types

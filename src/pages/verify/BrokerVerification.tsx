@@ -1,18 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { db } from '../../lib/firebase/config';
-import { startVerification, updateVerificationStatus, markVerificationFailed } from '../../services/verificationService';
+import React, { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "../../components/ui/Button"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import { useToast } from "../../components/ui/use-toast"
+import { ArrowRight, Check } from "lucide-react"
+import { db } from "../../lib/firebase/config"
+import { startVerification, updateVerificationStatus, markVerificationFailed } from "../../services/verificationService"
+
+const advantages = [
+  "Attraktive Provisionen für jedes vermittelte Fahrzeug",
+  "Flexible und kosteneffiziente Leasinglösungen für Ihre Kunden",
+  "Skalierbares Einkommen durch Einladung von Unter-Maklern",
+]
 
 const BrokerVerification = () => {
-  const { verificationId } = useParams();
-  const navigate = useNavigate();
-  const [status, setStatus] = useState<'loading' | 'verifying' | 'password' | 'success' | 'error'>('loading');
-  const [error, setError] = useState<string | null>(null);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [inviteData, setInviteData] = useState<any>(null);
+  const [currentAdvantage, setCurrentAdvantage] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { verificationId } = useParams()
+  const navigate = useNavigate()
+  const [status, setStatus] = useState<"loading" | "verifying" | "password" | "success" | "error">("loading")
+  const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [inviteData, setInviteData] = useState<any>(null)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentAdvantage((prev) => (prev + 1) % advantages.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const verifyInvitation = async () => {
@@ -77,6 +99,7 @@ const BrokerVerification = () => {
     }
 
     try {
+      setIsSubmitting(true);
       setStatus('verifying');
       const auth = getAuth();
       
@@ -191,92 +214,129 @@ const BrokerVerification = () => {
         setStatus('error');
         setError('Ein Fehler ist beim Erstellen Ihres Kontos aufgetreten');
       }
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Broker Einladung
-        </h2>
-        
-        <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {(status === 'loading' || status === 'verifying') && (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <div className="w-full max-w-6xl bg-white bg-opacity-70 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+        {/* Left Column - Image and Advantages */}
+        <div className="lg:w-1/2 relative">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Design%20ohne%20Titel%20(79)-IqSyabeHD2NZAxAB5AJegTgGc1ijiq.png')`,
+              backgroundPosition: "center 20%",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-600/70 to-indigo-700/70 backdrop-blur-sm" />
+          <div className="relative z-10 p-8 lg:p-12 flex flex-col h-full justify-between text-white">
+            <div>
+              <h1 className="text-4xl font-bold mb-6">Broker bei VILOCAR</h1>
+              <p className="text-xl mb-8">Maximale Vorteile & attraktive Provisionen</p>
+              <div className="space-y-6">
+                {advantages.map((advantage, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.2 }}
+                    className="flex items-start"
+                  >
+                    <Check className="mr-2 mt-1 flex-shrink-0" />
+                    <span>{advantage}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+            <p className="mt-8 text-lg font-semibold">
+              💡 Fazit: Bauen Sie ein starkes Netzwerk auf, helfen Sie Kunden und profitieren Sie finanziell – eine
+              echte Win-Win-Situation! 🚀
+            </p>
+          </div>
+        </div>
+
+        {/* Right Column - Form */}
+        <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-white">
+          {(status === "loading" || status === "verifying") && (
             <div className="text-center">
               <p className="text-gray-600">
-                {status === 'loading' ? 'Einladung wird verifiziert...' : 'Konto wird erstellt...'}
+                {status === "loading" ? "Einladung wird verifiziert..." : "Konto wird erstellt..."}
               </p>
             </div>
           )}
 
-          {status === 'password' && (
-            <form onSubmit={handleSetPassword}>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Passwort
-                </label>
-                <div className="mt-1">
-                  <input
+          {status === "password" && (
+            <>
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Jetzt registrieren</h2>
+              <p className="text-gray-600 mb-8">Erstellen Sie Ihr Konto in wenigen Schritten und starten Sie noch heute.</p>
+
+              <form onSubmit={handleSetPassword} className="space-y-6">
+                <div>
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Passwort
+                  </Label>
+                  <Input
                     id="password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1"
+                    placeholder="••••••••"
                   />
                 </div>
-              </div>
-
-              <div className="mt-4">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Passwort bestätigen
-                </label>
-                <div className="mt-1">
-                  <input
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                    Passwort bestätigen
+                  </Label>
+                  <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1"
+                    placeholder="••••••••"
                   />
                 </div>
-              </div>
 
-              {error && (
-                <div className="mt-4 text-sm text-red-600">
-                  {error}
-                </div>
-              )}
-
-              <div className="mt-6">
-                <button
+                <Button
                   type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                 >
-                  Konto erstellen
-                </button>
-              </div>
-            </form>
+                  {isSubmitting ? (
+                    "Registrierung läuft..."
+                  ) : (
+                    <>
+                      Als Broker registrieren
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-gray-600">
+                Bereits registriert?{" "}
+                <a
+                  href="/login"
+                  className="font-medium text-indigo-600 hover:text-indigo-500 transition duration-150 ease-in-out"
+                >
+                  Hier anmelden
+                </a>
+              </p>
+            </>
           )}
 
-          {status === 'success' && (
+          {status === "success" && (
             <div className="text-center">
               <div className="rounded-full bg-green-100 p-3 mx-auto w-fit">
-                <svg
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
+                <Check className="h-6 w-6 text-green-600" />
               </div>
               <p className="mt-4 text-gray-600">
                 Ihr Konto wurde erfolgreich erstellt. Sie werden in Kürze weitergeleitet...
@@ -284,7 +344,7 @@ const BrokerVerification = () => {
             </div>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <div className="text-center">
               <div className="rounded-full bg-red-100 p-3 mx-auto w-fit">
                 <svg
@@ -300,11 +360,27 @@ const BrokerVerification = () => {
                 </svg>
               </div>
               <p className="mt-4 text-red-600">
-                {error || 'Ein unbekannter Fehler ist aufgetreten'}
+                {error || "Ein unbekannter Fehler ist aufgetreten"}
               </p>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Animated advantage display */}
+      <div className="fixed bottom-4 left-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentAdvantage}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="text-center text-gray-800"
+          >
+            {advantages[currentAdvantage]}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -116,10 +116,16 @@ const Header = () => {
           { label: 'Vorteilsrechner', path: '/benefits' }
         );
     } else if (user?.role === 'employee_normal' || user?.role === 'employee_salary' || user?.role === 'customer') {
-      items.splice(2, 0,
-        { label: 'Ihre Bestellungen', path: '/orders' },
-        { label: 'Anfragen', path: '/requests' }
-      );
+      if (user?.role === 'employee_salary') {
+        items.splice(2, 0,
+          { label: 'Ihre Bestellungen', path: '/orders' },
+          { label: 'Anfragen', path: '/requests' }
+        );
+      } else {
+        items.splice(2, 0,
+          { label: 'Ihre Bestellungen', path: '/orders' }
+        );
+      }
     }
 
     if (user?.role === 'broker') {
