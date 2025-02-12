@@ -29,7 +29,7 @@ export const sendCompanyInvitation = async (params: CompanyEmailParams) => {
       contactPerson: params.contactPerson,
       companyName: params.companyName,
       verificationUrl: params.verificationUrl,
-      brokerName: params.brokerName || 'Ein Makler'  // Default fallback if no broker name
+      brokerName: params.brokerName
     };
 
     const result = await apiInstance.sendTransacEmail(sendSmtpEmail);

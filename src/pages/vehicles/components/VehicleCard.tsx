@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../hooks/useAuthStore';
 import { 
@@ -29,7 +29,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
-  const [isNettoMode, setIsNettoMode] = useState(false);
 
   const handleDuplicate = async (e: React.MouseEvent) => {
     try {
@@ -60,22 +59,11 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
   const isSalaryConversion = vehicle.categories?.includes('salary');
   const colors = getFuelTypeColors(vehicle.fuelType || '');
 
-  const calculatePrice = useCallback((price: number) => {
-    return isNettoMode ? Number((price / 1.19).toFixed(2)) : price;
-  }, [isNettoMode]);
-
   const priceInfo = {
-    amount: calculatePrice(
-      isSalaryConversion 
-        ? (vehicle.salaryConversionPrice || 0) 
-        : getLowestMonthlyRate(vehicle.priceMatrix)
-    ),
+    amount: isSalaryConversion 
+      ? (vehicle.salaryConversionPrice || 0) 
+      : getLowestMonthlyRate(vehicle.priceMatrix),
     label: '/Monat'
-  };
-
-  const togglePriceMode = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsNettoMode(!isNettoMode);
   };
 
   return (
@@ -163,17 +151,7 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle }) => {
             {/* Price and Availability */}
             <div className="pt-4 border-t border-gray-100">
               <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={togglePriceMode}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                      isNettoMode 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {isNettoMode ? 'Netto' : 'Brutto'}
-                  </button>
+                <div className="flex items-center justify-end">
                   <div className="text-sm font-medium px-3 py-1 rounded-lg" style={{ 
                     backgroundColor: vehicle.isAvailable ? '#dcfce7' : '#fef9c3',
                     color: vehicle.isAvailable ? '#166534' : '#854d0e'
