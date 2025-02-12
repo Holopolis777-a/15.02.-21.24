@@ -1,0 +1,243 @@
+#root {
+  background: linear-gradient(135deg, #f1f8f1 0%, #e8f5e9 50%, #f1f8f1 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.about-section-with-shape {
+  position: relative;
+  padding: 60px 0;
+  width: 100%;
+  flex: 1;
+}
+
+.about-section-with-shape::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(76, 175, 80, 0.1) 0%, transparent 70%),
+              radial-gradient(circle at bottom left, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 40px;
+  }
+}
+
+.about-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+  padding: 60px 0;
+}
+
+.invite-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #4CAF50;
+  color: white;
+  padding: 18px 36px;
+  border-radius: 50px;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.invite-button:hover {
+  background: #388E3C;
+}
+
+.invite-button-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.about-image-block {
+  position: relative;
+  padding: 30px;
+}
+
+.vehicle-card-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 450px;
+  border-radius: 24px;
+  overflow: hidden;
+  z-index: 1;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.vehicle-card-container > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.vehicle-card-container img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  border-radius: 24px 24px 0 0;
+}
+
+.section-subtitle-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-subtitle-border {
+  width: 40px;
+  height: 2px;
+  background: #4CAF50;
+}
+
+.section-subtitle {
+  color: #2E7D32;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+.section-title {
+  font-size: 44px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 60px;
+  line-height: 1.2;
+}
+
+.section-title span {
+  color: #2E7D32;
+  position: relative;
+  display: inline-block;
+}
+
+.about-feature-list-wrapper {
+  display: grid;
+  gap: 30px;
+}
+
+.about-feature-list-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.about-feature-list-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  color: #2E7D32;
+  background: #f1f8f1;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-feature-list-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.about-feature-list-title span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+/* Process Steps */
+.process-step {
+  position: relative;
+}
+
+.process-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  right: -50%;
+  width: 100%;
+  height: 2px;
+  background: #e0e0e0;
+}
+
+@media (max-width: 991px) {
+  .about-wrapper {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+  
+  .about-image-block {
+    order: -1;
+  }
+
+  .section-title {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 767px) {
+  .about-section-with-shape {
+    padding: 40px 0;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 40px;
+  }
+  
+  .about-feature-list-title {
+    font-size: 16px;
+  }
+
+  .about-feature-list-block {
+    padding: 15px;
+  }
+
+  .invite-button {
+    padding: 16px 28px;
+    font-size: 18px;
+  }
+
+  .process-step:not(:last-child)::after {
+    display: none;
+  }
+}

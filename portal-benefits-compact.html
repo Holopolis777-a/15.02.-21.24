@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Vorteile - Kompakt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+
+        .benefits-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .portal-section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .portal-title {
+            font-size: 1.1rem;
+            color: #1a73e8;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e8f0fe;
+            display: flex;
+            align-items: center;
+        }
+
+        .portal-title svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+        }
+
+        .benefits-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .benefits-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .group-title {
+            font-size: 0.9rem;
+            color: #5f6368;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .group-title svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.5rem;
+            color: #5f6368;
+        }
+
+        .benefits-list {
+            list-style: none;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #3c4043;
+            line-height: 1.4;
+        }
+
+        .benefit-item svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.5rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+            color: #34a853;
+        }
+
+        .mitarbeiter-portal .portal-title {
+            color: #1967d2;
+        }
+
+        .gehaltsumwandlung-portal .portal-title {
+            color: #c2185b;
+        }
+
+        @media (max-width: 768px) {
+            .benefits-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="benefits-container">
+        <!-- Mitarbeiter Portal -->
+        <div class="portal-section mitarbeiter-portal">
+            <h2 class="portal-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Mitarbeiter Portal
+            </h2>
+            
+            <div class="benefits-group">
+                <h3 class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-9"></path>
+                        <path d="M14 17H5"></path>
+                        <circle cx="17" cy="17" r="3"></circle>
+                        <circle cx="7" cy="7" r="3"></circle>
+                    </svg>
+                    Vorteile für Sie als Arbeitgeber
+                </h3>
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Kein administrativer Aufwand
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Einfache Bereitstellung von Benefits
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Positive Arbeitgeberwahrnehmung
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Flexible Gestaltungsmöglichkeiten
+                    </li>
+                </ul>
+            </div>
+
+            <div class="benefits-group">
+                <h3 class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Vorteile für Ihre Mitarbeiter
+                </h3>
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Exklusive Sonderkonditionen
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Große Fahrzeugauswahl
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Einfacher digitaler Prozess
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Flexible Leasing- oder Kaufoptionen
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Gehaltsumwandlungs Portal -->
+        <div class="portal-section gehaltsumwandlung-portal">
+            <h2 class="portal-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="M7 15h0M12 15h0M17 15h0"></path>
+                </svg>
+                Gehaltsumwandlungs Portal
+            </h2>
+
+            <div class="benefits-group">
+                <h3 class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-9"></path>
+                        <path d="M14 17H5"></path>
+                        <circle cx="17" cy="17" r="3"></circle>
+                        <circle cx="7" cy="7" r="3"></circle>
+                    </svg>
+                    Vorteile für Sie als Arbeitgeber
+                </h3>
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Reduzierung administrativer Aufwände
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Förderung von Nachhaltigkeit
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Steigerung der Arbeitgeberattraktivität
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Kostenneutral für den Arbeitgeber
+                    </li>
+                </ul>
+            </div>
+
+            <div class="benefits-group">
+                <h3 class="group-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Vorteile für Ihre Mitarbeiter
+                </h3>
+                <ul class="benefits-list">
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Steuerliche Ersparnisse durch Brutto-Gehaltsumwandlung
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Rundum-sorglos-Paket mit Full-Service
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Attraktive Auswahl an E-Fahrzeugen
+                    </li>
+                    <li class="benefit-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Beitrag zur Nachhaltigkeit
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einladung FahrzeugManager Pro</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; background-color: #f3f4f6;">
+    <div style="max-width: 600px; margin: 40px auto; padding: 40px 20px;">
+        <!-- Logo and Header Section -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="https://vilocar.com/logo.png" alt="Vilocar Logo" style="height: 40px; margin-bottom: 20px;">
+            <h1 style="margin: 0; color: #14b8a6; font-size: 24px; font-weight: 600;">Willkommen bei FahrzeugManager Pro</h1>
+        </div>
+
+        <!-- Main Content Card -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+            <p style="margin-top: 0; font-size: 16px;">Sehr geehrte/r {{ params.contact_person }},</p>
+            
+            <p style="font-size: 16px;">Sie wurden als Administrator für <strong>{{ params.company }}</strong> bei FahrzeugManager Pro eingeladen. Um Ihren Account zu aktivieren und ein Passwort festzulegen, klicken Sie bitte auf den folgenden Button:</p>
+
+            <!-- Action Button -->
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{{ params.verification_url }}" 
+                   style="display: inline-block; padding: 14px 32px; background-color: #14b8a6; color: white; text-decoration: none; border-radius: 12px; font-weight: 500; font-size: 16px; transition: background-color 0.2s;">
+                    Account aktivieren
+                </a>
+            </div>
+
+            <!-- Info Box -->
+            <div style="background-color: #f0fdfa; border-radius: 12px; padding: 20px; margin: 24px 0;">
+                <p style="margin: 0; color: #115e59; font-size: 15px;">
+                    ⚡️ Der Aktivierungslink ist 24 Stunden gültig. Bei Problemen kontaktieren Sie bitte unseren Support.
+                </p>
+            </div>
+
+            <!-- Features Preview -->
+            <div style="margin: 32px 0;">
+                <h2 style="font-size: 18px; color: #374151; margin-bottom: 16px;">Das erwartet Sie:</h2>
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; align-items: start; gap: 12px;">
+                        <div style="background-color: #14b8a6; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">🚗</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; color: #374151;">Fahrzeugverwaltung</h3>
+                            <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Verwalten Sie Ihre Fahrzeugflotte effizient</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 12px;">
+                        <div style="background-color: #14b8a6; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">📊</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; color: #374151;">Reporting</h3>
+                            <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Detaillierte Auswertungen und Statistiken</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 12px;">
+                        <div style="background-color: #14b8a6; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">👥</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; color: #374151;">Mitarbeiterverwaltung</h3>
+                            <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Einfache Verwaltung von Mitarbeiterzugängen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Section -->
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                    Dies ist eine automatisch generierte E-Mail. Bitte antworten Sie nicht auf diese Nachricht.
+                </p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">
+                    © 2025 Vilocar GmbH. Alle Rechte vorbehalten.
+                </p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">
+                    <a href="https://vilocar.com/datenschutz" style="color: #14b8a6; text-decoration: none;">Datenschutz</a>
+                    &nbsp;•&nbsp;
+                    <a href="https://vilocar.com/impressum" style="color: #14b8a6; text-decoration: none;">Impressum</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

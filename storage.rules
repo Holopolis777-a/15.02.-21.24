@@ -1,0 +1,88 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isContentManager() {
+      return request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'content_manager');
+    }
+
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 2 * 1024 * 1024;  // 2MB max
+    }
+
+    // Allow read access to all files
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Public files (like the main logo)
+    match /public/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    // Portal logos (for admin users)
+    match /logos/{userId}/{allPaths=**} {
+      allow write: if isAdmin() && 
+                  request.auth.uid == userId &&
+                  isValidImage();
+    }
+
+    // Vehicle images
+    match /vehicles/{vehicleId}/{allPaths=**} {
+      allow write: if (isAdmin() || isContentManager()) &&
+                  isValidImage();
+    }
+
+    // Company logos
+    match /company-logos/{allPaths=**} {
+      allow write: if isAdmin() && 
+                  isValidImage();
+    }
+
+    // Broker logos
+    match /broker-logos/{allPaths=**} {
+      allow write: if isAdmin() && 
+                  isValidImage();
+    }
+
+    // News images
+    match /news/{allPaths=**} {
+      allow write: if isContentManager() && 
+                  isValidImage();
+    }
+
+    // Support ticket attachments
+    match /tickets/{ticketId}/attachments/{fileName} {
+      allow write: if isAuthenticated() &&
+                  request.resource.size < 10 * 1024 * 1024 && // 10MB max
+                  (
+                    // Allow PDF and common document formats
+                    request.resource.contentType.matches('application/pdf') ||
+                    request.resource.contentType.matches('application/msword') ||
+                    request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
+                    // Allow images
+                    request.resource.contentType.matches('image/.*')
+                  );
+    }
+
+    // User avatars
+    match /avatars/{userId} {
+      allow write: if isAuthenticated() &&
+                  request.auth.uid == userId &&
+                  isValidImage();
+    }
+  }
+}
