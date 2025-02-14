@@ -63,38 +63,604 @@ service cloud.firestore {
         get(/databases/$(database)/documents/companies/$(companyId)).data.invitedBy == request.auth.uid;
     }
 
-    // Companies Collection
-    match /companies/{companyId} {
+    function isParentOrSubBroker(brokerId) {
+      let currentBroker = get(/databases/$(database)/documents/brokers/$(request.auth.token.email));
+      return currentBroker.data.parentBrokerId == brokerId || 
+             exists(/databases/$(database)/documents/brokers/$(brokerId)) && 
+             get(/databases/$(database)/documents/brokers/$(brokerId)).data.parentBrokerId == request.auth.uid;
+    }
+
+    // Broker Stats Collection für Statistiken
+    match /brokerStats/{brokerId} {
+      allow read, list: if isAuthenticated() && (
+        isAdmin() || 
+        isBroker() && (
+          brokerId == request.auth.uid || // Eigene Stats
+          get(/databases/$(database)/documents/brokers/$(request.auth.uid)).data.parentBrokerId == brokerId || // Stats des übergeordneten Brokers
+          exists(/databases/$(database)/documents/brokers/$(brokerId)) && 
+          get(/databases/$(database)/documents/brokers/$(brokerId)).data.parentBrokerId == request.auth.uid // Stats der Unterbroker
+        )
+      );
+      allow write: if isAdmin();
+    }
+
+    // Top Brokers Collection
+    match /topBrokers/{brokerId} {
+      allow read, list: if isAuthenticated() && (isAdmin() || isBroker());
+      allow write: if isAdmin();
+    }
+
+    match /settings/{docId} {
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow write: if isAdmin();
+    }
+
+    match /customers/{customerId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isBroker() && (
+          resource.data.brokerId == request.auth.uid ||
+          (exists(/databases/$(database)/documents/brokers/$(resource.data.brokerId)) &&
+           get(/databases/$(database)/documents/brokers/$(resource.data.brokerId)).data.parentBrokerId == request.auth.uid)
+        )) ||
+        resource.data.email == request.auth.token.email
+      );
+      allow update: if isAuthenticated() && (request.auth.uid == customerId || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // Users Collection
     match /users/{userId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow read: if 
+        // Allow reading admin logos without authentication
+        (request.query.limit <= 10 && 
+         request.query.filters.size() == 1 && 
+         request.query.filters[0].op == "==" && 
+         request.query.filters[0].field == "role" && 
+         request.query.filters[0].value == "admin") ||
+        // Existing authenticated access
+        (isAuthenticated() && (
+          true ||  // Keep existing open read access
+          (isEmployer() && (
+            get(/databases/$(database)/documents/users/$(userId)).data.companyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId ||
+            get(/databases/$(database)/documents/users/$(userId)).data.employerCompanyId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId
+          ))
+        ));
+      allow create: if 
+        // Erlaube nicht authentifizierte Erstellung während der Registrierung
+        request.auth == null ||
+        // Existierende authentifizierte Zugriffe
+        (request.auth != null && (
+        // For customer registration
+        (
+          request.resource.data.role == 'customer' &&
+          request.auth.uid == userId &&
+          request.resource.data.keys().hasAll(['email', 'role', 'createdAt', 'updatedAt'])
+        ) ||
+        // For employer registration
+        (
+          request.resource.data.role == 'employer' &&
+          request.auth.uid == userId &&
+          request.resource.data.keys().hasAll(['email', 'role', 'createdAt', 'updatedAt', 'verificationId'])
+        ) ||
+        // For admin registration with verification
+        (
+          request.resource.data.role == 'admin' &&
+          request.resource.data.verificationId != null &&
+          exists(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)) &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.type == 'admin_invite' &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.email == request.auth.token.email
+        ) ||
+        // For broker verification
+        (
+          request.resource.data.role == 'broker' &&
+          request.resource.data.verificationId != null &&
+          exists(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)) &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.type == 'broker_invite' &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.email == request.auth.token.email
+        ) ||
+        // For employer verification
+        (
+          exists(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)) &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.type in ['employer_verification', 'employer_invite', 'company_invite'] &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.email == request.auth.token.email &&
+          request.resource.data.role == 'employer'
+        ) ||
+        // For employee registration (both email and link-based)
+        (
+          request.auth.uid == userId &&
+          request.resource.data.inviteId != null &&
+          exists(/databases/$(database)/documents/employeeInvites/$(request.resource.data.inviteId)) &&
+          (
+            // For email invites
+            (
+              get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.inviteId)).data.method == 'email' &&
+              get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.inviteId)).data.email == request.auth.token.email
+            ) ||
+            // For registration links
+            (
+              get(/databases/$(database)/documents/employeeInvites/$(request.resource.data.inviteId)).data.method == 'link' &&
+              request.resource.data.role in ['employee_normal', 'employee_salary']
+            )
+          )
+        ))
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        isOwner(userId) ||
+        (
+          isEmployer() &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId ==
+          get(/databases/$(database)/documents/users/$(userId)).data.companyId
+        )
+      );
       allow delete: if isAdmin();
     }
 
-    // Verifications Collection
+    match /employeeInvites/{inviteId} {
+      allow read: if true;  // Allow reading invites for verification
+      allow create: if
+        // Allow employers to create invites
+        (isAuthenticated() && canManageEmployees() &&
+        request.resource.data.employerCompanyId ==
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId) ||
+        // Allow creation during link-based registration
+        (request.auth != null &&
+         request.resource.data.method == 'link' &&
+         request.resource.data.status == 'pending' &&
+         request.resource.data.type == 'employee_invite');
+      allow update: if
+        request.auth != null &&
+        (
+          // Allow updating invite status during registration
+          (
+            request.resource.data.status in ['pending', 'accepted'] &&
+            request.resource.data.userId == request.auth.uid
+          ) ||
+          // Allow employers to manage their invites
+          (
+            canManageEmployees() &&
+            resource.data.employerCompanyId ==
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId
+          )
+        );
+      allow delete: if canManageEmployees() &&
+        resource.data.employerCompanyId ==
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
+    }
+
+        match /companies/{companyId} {
+          allow read: if true;  // Erlaube Lesen für die Validierung während der Registrierung
+          allow create: if 
+            // Erlaube nicht authentifizierte Erstellung während der Registrierung
+            request.auth == null ||
+            // Erlaube Erstellung durch authentifizierte Arbeitgeber
+            (isAuthenticated() && (
+              isAdmin() ||
+              isEmployer() || // Erlaube Arbeitgebern das Erstellen von Unternehmensdokumenten
+              (isBroker() && (
+                // For direct company creation
+                request.resource.data.keys().hasAll(['status', 'brokerId', 'createdAt']) ||
+                // For invite link generation
+                request.resource.data.keys().hasAll(['status', 'brokerId', 'createdAt']) &&
+                request.resource.data.status == 'pending'
+              )) ||
+              (request.auth.token.email == request.resource.data.email) ||
+              // Erlaube Erstellung während der Employer-Registrierung
+              (
+                request.resource.data.verificationId != null &&
+                exists(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)) &&
+                get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.type in ['employer_verification', 'employer_invite', 'company_invite'] &&
+                get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.email == request.auth.token.email
+              )
+            ));
+          allow update: if 
+            // Erlaube nicht authentifizierte Updates während der Registrierung
+            request.auth == null ||
+            // Existierende authentifizierte Zugriffe
+            (isAuthenticated() && (
+              isAdmin() ||
+              isBroker() ||
+              isEmployer() || // Erlaube Arbeitgebern das Aktualisieren ihres Unternehmens
+              (request.auth.token.email == resource.data.email) ||
+              (
+                request.resource.data.verificationId != null &&
+                exists(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)) &&
+                get(/databases/$(database)/documents/verifications/$(request.resource.data.verificationId)).data.email == request.auth.token.email
+              )
+            ));
+          allow delete: if isAdmin();
+        }
+
+    match /brokerInvites/{inviteId} {
+      allow read: if (isAuthenticated() && (isAdmin() || isBroker())) ||
+        (
+          exists(/databases/$(database)/documents/verifications/$(inviteId)) &&
+          get(/databases/$(database)/documents/verifications/$(inviteId)).data.type == 'broker_invite'
+        ) ||
+        // Allow read during broker registration
+        (
+          request.auth != null &&
+          exists(/databases/$(database)/documents/verifications/$(inviteId)) &&
+          get(/databases/$(database)/documents/verifications/$(inviteId)).data.type == 'broker_invite' &&
+          get(/databases/$(database)/documents/verifications/$(inviteId)).data.email == request.auth.token.email
+        );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        // Allow brokers to create invites
+        (isBroker() && (
+          // Basic invite data validation
+          request.resource.data.keys().hasAll(['status', 'createdAt']) &&
+          request.resource.data.status == 'pending'
+        ))
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        // Allow brokers to update their created invites
+        (isBroker() && (
+          resource.data.createdBy == request.auth.uid ||
+          request.resource.data.createdBy == request.auth.uid
+        )) ||
+        (
+          // Allow broker to update their own invite during registration
+          exists(/databases/$(database)/documents/verifications/$(inviteId)) &&
+          get(/databases/$(database)/documents/verifications/$(inviteId)).data.type == 'broker_invite' &&
+          get(/databases/$(database)/documents/verifications/$(inviteId)).data.email == request.auth.token.email &&
+          // Only allow specific fields to be updated during registration
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedAt', 'userId', 'brokerId'])
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /brokers/{brokerEmail} {
+      function hasParentBroker() {
+        return request.resource.data.parentBrokerId != null;
+      }
+
+      function isParentBroker(brokerEmail) {
+        return isBroker() &&
+          exists(/databases/$(database)/documents/brokers/$(brokerEmail)) &&
+          get(/databases/$(database)/documents/brokers/$(brokerEmail)).data.parentBrokerId == request.auth.uid;
+      }
+
+      function getParentCommission() {
+        return hasParentBroker() ?
+          get(/databases/$(database)/documents/brokers/$(request.resource.data.parentBrokerId)).data.availableCommission : 0;
+      }
+
+      function getTotalCommission() {
+        let commissions = request.resource.data.subBrokerCommissions;
+        return commissions == null ? 0 : commissions.values().sum();
+      }
+
+      function validateCommissionUpdate() {
+        let isNew = !exists(/databases/$(database)/documents/brokers/$(brokerEmail));
+        let total = getTotalCommission();
+        
+        return (isAdmin() && isNew) ||
+          (hasParentBroker() ?
+            getParentCommission() >= request.resource.data.commissionPerVehicle &&
+            request.resource.data.availableCommission >= total
+            : request.resource.data.availableCommission >= total);
+      }
+
+      function isVerifiedBroker() {
+        let verificationId = request.resource.data.verificationId;
+        return verificationId != null &&
+          exists(/databases/$(database)/documents/verifications/$(verificationId)) &&
+          get(/databases/$(database)/documents/verifications/$(verificationId)).data.type == 'broker_invite' &&
+          get(/databases/$(database)/documents/verifications/$(verificationId)).data.email == request.auth.token.email;
+      }
+
+      function validateFields() {
+        let required = ['brokerId', 'email', 'fullName', 'status', 'commissionPerVehicle',
+          'availableCommission', 'originalCommission'];
+        return request.resource.data.keys().hasAll(required);
+      }
+
+      function canManageSubBrokers() {
+        return isBroker() &&
+          exists(/databases/$(database)/documents/brokers/$(request.auth.token.email));
+      }
+
+      allow read: if isAuthenticated() && (isAdmin() || isBroker());
+
+      // Erlaube List-Anfragen für Broker-Dokumente (Top Broker) für authentifizierte Nutzer, sofern diese Broker oder Admin sind.
+      allow list: if isAuthenticated() && (isAdmin() || isBroker());
+
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        // Allow brokers to create other brokers
+        (isBroker() && (
+          // Validate fields for new broker
+          request.resource.data.keys().hasAll(['email', 'brokerId', 'status']) &&
+          // Allow both regular and sub-broker invites
+          (
+            // For regular broker invites
+            (
+              request.resource.data.parentBrokerId == request.auth.uid &&
+              exists(/databases/$(database)/documents/brokers/$(request.auth.token.email))
+            ) ||
+            // For supbroker invites
+            (
+              request.resource.data.type == 'supbroker'
+            )
+          )
+        )) ||
+        (request.auth.token.email == brokerEmail && isVerifiedBroker()) ||
+        // Allow creation during broker registration
+        (
+          request.auth != null &&
+          exists(/databases/$(database)/documents/verifications/$(request.resource.data.inviteId)) &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.inviteId)).data.type == 'broker_invite' &&
+          get(/databases/$(database)/documents/verifications/$(request.resource.data.inviteId)).data.email == request.auth.token.email
+        )
+      );
+
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        // Allow brokers to update their own document and manage sub-brokers
+        (isBroker() && (
+          request.auth.token.email == brokerEmail ||
+          canManageSubBrokers()
+        )) ||
+        // Allow parent broker to update their sub-broker's information
+        (isBroker() && isParentBroker(brokerEmail)) ||
+        (request.auth.token.email == brokerEmail && (
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['commissionPerVehicle', 'availableCommission', 'originalCommission', 'parentBrokerId']) ||
+          validateCommissionUpdate()
+        )) ||
+        // Allow updates during broker registration
+        (
+          request.auth != null &&
+          resource.data.email == request.auth.token.email &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'inviteStatus', 'userId'])
+        )
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    match /vehicles/{vehicleId} {
+      allow read: if isAuthenticated() && (
+        // Admin, Broker, Employer und Customer können alle Fahrzeuge sehen
+        isAdmin() ||
+        isBroker() ||
+        isEmployer() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer' ||
+        // Normale Mitarbeiter dürfen alle Fahrzeuge sehen
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'employee_normal')
+      );
+      
+      // Erlaube Broker das Lesen von Fahrzeugen für Statistiken
+      allow list: if isAuthenticated() && (
+        isAdmin() ||
+        isBroker() ||
+        isEmployer()
+      );
+      
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /news_posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isContentManager();
+      allow delete: if isAdmin();
+    }
+
+    match /faqs/{faqId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /vehicleRequests/{requestId} {
+      allow list: if isAuthenticated() && (
+        // Admin kann alle Bestellungen sehen
+        isAdmin() ||
+        // Broker kann alle Bestellungen sehen
+        isBroker() ||
+        // Arbeitgeber kann alle Bestellungen seiner Mitarbeiter sehen
+        isEmployer() ||
+        // Benutzer kann seine eigenen Bestellungen sehen
+        request.auth.uid != null
+      );
+
+      allow read: if isAuthenticated() &&
+        (
+          // Benutzer kann seine eigenen Bestellungen sehen
+          resource.data.userId == request.auth.uid ||
+          // Arbeitgeber kann Bestellungen seiner Mitarbeiter sehen
+          isCompanyMember(resource.data.companyId) ||
+          // Broker kann Bestellungen seiner eingeladenen Unternehmen sehen
+          hasInvitedCompany(resource.data.companyId) ||
+          // Admin kann alle Bestellungen sehen
+          isAdmin() ||
+          // Broker kann Bestellungen seiner eingeladenen Unternehmen sehen (alternative Prüfung)
+          (isBroker() && exists(/databases/$(database)/documents/companies/$(resource.data.companyId)) && get(/databases/$(database)/documents/companies/$(resource.data.companyId)).data.invitedBy == request.auth.uid)
+        );
+
+      // Zusätzliche Regel für das Lesen einzelner Dokumente
+      allow get: if isAuthenticated() &&
+        (
+          // Benutzer kann seine eigene Bestellung im Detail sehen
+          resource.data.userId == request.auth.uid ||
+          // Arbeitgeber kann Bestellungsdetails seiner Mitarbeiter sehen
+          isCompanyMember(resource.data.companyId) ||
+          // Broker kann Bestellungsdetails seiner eingeladenen Unternehmen sehen
+          hasInvitedCompany(resource.data.companyId) ||
+          // Admin kann alle Bestellungsdetails sehen
+          isAdmin() ||
+          // Broker kann Bestellungsdetails seiner eingeladenen Unternehmen sehen (alternative Prüfung)
+          (isBroker() && exists(/databases/$(database)/documents/companies/$(resource.data.companyId)) && get(/databases/$(database)/documents/companies/$(resource.data.companyId)).data.invitedBy == request.auth.uid)
+        );
+      allow create: if isAuthenticated() && (
+        // Normale Anfragen vom User
+        (request.resource.data.userId == request.auth.uid &&
+        (
+          // Für normale Anfragen
+          !request.resource.data.isOrder ||
+          // Für Bestellungen
+          (
+            request.resource.data.isOrder &&
+            request.resource.data.status == 'credit_check_started'
+          )
+        )) ||
+        // Employer darf neue Bestellungen erstellen
+        (isEmployer() &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == request.resource.data.companyId ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.employerCompanyId == request.resource.data.companyId) &&
+         request.resource.data.isOrder == true &&
+         request.resource.data.status == 'credit_check_started') ||
+        // System darf neue Bestellungen bei Genehmigung erstellen
+        (isEmployer() &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == request.resource.data.companyId ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.employerCompanyId == request.resource.data.companyId) &&
+         request.resource.data.isOrder == true &&
+         request.resource.data.status == 'credit_check_started' &&
+         request.resource.data.originalRequestId != null)
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        // Employer kann Anfragen seiner Mitarbeiter verwalten
+        (isEmployer() &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == resource.data.companyId ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.employerCompanyId == resource.data.companyId) &&
+         // Erlaube nur Status und updatedAt Änderungen
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+         // Für Gehaltsumwandlungsanfragen
+         ((resource.data.type == 'salary_conversion' &&
+           request.resource.data.status in ['salary_conversion_approved', 'salary_conversion_rejected']) ||
+          // Für andere Anfragen
+          (request.resource.data.status in ['approved', 'rejected']))) ||
+        // Erlaube Updates für Bestellungen nur wenn der Status korrekt ist
+        (
+          resource.data.isOrder &&
+          request.resource.data.isOrder &&
+          resource.data.userId == request.auth.uid &&
+          (
+            // Erlaube nur bestimmte Status-Übergänge
+            request.resource.data.status in ['credit_check_started', 'cancelled']
+          )
+        ) ||
+        // Erlaube dem Employee seine eigene Anfrage zurückzuziehen
+        (
+          resource.data.userId == request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+          request.resource.data.status == 'withdrawn'
+        )
+      );
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        (isEmployer() && isCompanyMember(resource.data.companyId))
+      );
+    }
+
+    match /customerInvites/{inviteId} {
+      allow read: if true;  // Erlaube Lesen für die Validierung während der Registrierung
+      allow create: if request.auth != null && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker'
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker' ||
+        // Erlaube Updates während der Kundenregistrierung
+        (
+          resource.data.status == 'pending' &&
+          request.resource.data.status == 'accepted' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedAt'])
+        )
+      );
+      allow delete: if request.auth != null && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker'
+      );
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid || 
+        isAdmin() ||
+        resource.data.assignedTo == request.auth.uid
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.createdBy == request.auth.uid ||
+        resource.data.assignedTo == request.auth.uid
+      );
+      allow delete: if isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/tickets/$(ticketId)).data.createdBy == request.auth.uid ||
+          isAdmin() ||
+          get(/databases/$(database)/documents/tickets/$(ticketId)).data.assignedTo == request.auth.uid
+        );
+        allow create: if isAuthenticated() && (
+          get(/databases/$(database)/documents/tickets/$(ticketId)).data.createdBy == request.auth.uid ||
+          isAdmin() ||
+          get(/databases/$(database)/documents/tickets/$(ticketId)).data.assignedTo == request.auth.uid
+        );
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    match /admin_invites/{inviteId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAdmin() || (request.auth != null && resource.data.email == request.auth.token.email);
+      allow delete: if isAdmin();
+    }
+
     match /verifications/{verificationId} {
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow get: if true; // Explizit erlauben, einzelne Verifikationen zu lesen
+      allow list: if true; // Explizit erlauben, Verifikationen zu listen
+      allow create, update: if 
+        // Erlaube nicht authentifizierten Zugriff für die Validierung von Einladungen
+        request.auth == null ||
+        // Authentifizierte Zugriffe wie bisher
+        (request.auth != null && (
+          isAdmin() ||
+          (isBroker() && (
+            // Allow brokers to create verifications
+            (request.resource.data.type == 'broker_invite' && (
+              // Basic verification data validation
+              request.resource.data.keys().hasAll(['type', 'createdAt'])
+            )) ||
+            request.resource.data.type == 'company_invite' ||
+            request.resource.data.type == 'employer_invite' ||
+            (request.resource.data.type == 'customer_invite' && request.resource.data.brokerId == request.auth.uid)
+          )) ||
+          // Erlaube Updates während der Registrierung
+          (
+            resource != null && 
+            resource.data.type in ['employer_invite', 'company_invite', 'employer_verification'] &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'verified', 'verifiedAt', 'userId', 'companyId', 'updatedAt'])
+          ) ||
+          // Erlaube Erstellung während der Employer-Registrierung
+          (
+            request.resource.data.type == 'employer_verification' &&
+            request.resource.data.keys().hasAll(['type', 'email', 'status']) &&
+            request.resource.data.email == request.auth.token.email
+          )
+        ));
       allow delete: if isAdmin();
     }
 
-    // Keep all other existing rules from the original file
-    match /{collection}/{document=**} {
-      allow read, write: if 
-        collection != 'companies' && 
-        collection != 'users' && 
-        collection != 'verifications' && 
-        request.auth != null && 
-        (isAdmin() || isBroker() || isEmployer());
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        isBroker() && (
+          resource.data.brokerId == request.auth.uid ||  // Eigene Aufträge
+          resource.data.parentBrokerId == request.auth.uid ||  // Aufträge der Unterbroker
+          exists(/databases/$(database)/documents/brokers/$(resource.data.brokerId)) &&
+          get(/databases/$(database)/documents/brokers/$(resource.data.brokerId)).data.parentBrokerId == request.auth.uid  // Aufträge von Unterbrokern
+        )
+      );
+      allow create, update, delete: if isAdmin();
     }
   }
 }

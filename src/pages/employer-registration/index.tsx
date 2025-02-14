@@ -165,6 +165,7 @@ const EmployerRegistration = () => {
       setLoading(true);
       console.log('Starting registration process...');
 
+      // Verifikation prüfen
       const verificationRef = doc(db, 'verifications', inviteId);
       const verificationDoc = await getDoc(verificationRef);
 
@@ -181,12 +182,20 @@ const EmployerRegistration = () => {
         throw new Error('Ungültige Broker-Zuordnung');
       }
 
+      // Benutzer erstellen
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('User account created successfully', user.uid);
 
-      let companyId = null;
+      // Verifikation aktualisieren
+      await updateDoc(verificationRef, {
+        status: 'in_progress',
+        userId: user.uid,
+        updatedAt: serverTimestamp()
+      });
 
+      // Unternehmen erstellen
+      let companyId: string;
       const companyRef = await addDoc(collection(db, 'companies'), {
         name: companyName,
         status: 'active',
@@ -237,16 +246,13 @@ const EmployerRegistration = () => {
         companyId: companyId
       });
 
-      // Sign out the user after registration
-      await signOut(auth);
-
       toast({
         title: "Registrierung erfolgreich",
-        description: "Ihr Unternehmenskonto wurde erfolgreich erstellt. Sie werden in Kürze zur Anmeldeseite weitergeleitet."
+        description: "Ihr Unternehmenskonto wurde erfolgreich erstellt."
       });
 
-      // Redirect to login page
-      navigate('/login');
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
       let errorMessage = 'Ein unerwarteter Fehler ist aufgetreten.';
