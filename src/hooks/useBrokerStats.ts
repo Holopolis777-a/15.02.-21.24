@@ -10,39 +10,25 @@ export const useBrokerStats = () => {
   const [stats, setStats] = useState({
     activeCompanies: 0,
     activeMembers: 0,
-    monthlyCommission: 0
+    activeSubBrokers: 0,
+    totalVehicles: 0
   });
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.email) return;
 
-    // Echtzeit-Listener für Broker-Änderungen
-    const brokersQuery = query(
-      collection(db, 'brokers'),
-      where('parentBrokerId', '==', user.id)
-    );
-
-    const unsubscribe = onSnapshot(brokersQuery, async (brokerSnapshot) => {
-      await fetchStats(brokerSnapshot);
-    });
-
-    // Initial stats fetch
-    fetchStats();
-
-    return () => unsubscribe();
-
-    async function getAllSubBrokerIds(parentId: string): Promise<string[]> {
-      const brokerIds: string[] = [parentId];
+    async function getAllSubBrokerIds(parentEmail: string): Promise<string[]> {
+      const brokerIds: string[] = [parentEmail];
       const brokersRef = collection(db, 'brokers');
       
       // Get direct sub-brokers
-      const subBrokersQuery = query(brokersRef, where('parentBrokerId', '==', parentId));
+      const subBrokersQuery = query(brokersRef, where('parentBrokerId', '==', parentEmail));
       const subBrokersSnapshot = await getDocs(subBrokersQuery);
       
       // For each sub-broker
       for (const doc of subBrokersSnapshot.docs) {
         const brokerData = doc.data();
-        const brokerId = brokerData.brokerId || doc.id;
+        const brokerId = brokerData.email;
         brokerIds.push(brokerId);
         
         // Recursively get their sub-brokers
@@ -53,20 +39,20 @@ export const useBrokerStats = () => {
       return [...new Set(brokerIds)]; // Remove duplicates
     }
 
-    async function fetchStats(brokerSnapshotParam?: QuerySnapshot<DocumentData>) {
-      if (!user) return;
+    async function fetchStats() {
+      if (!user?.email) return;
 
       try {
         setLoading(true);
         
-        // Get all broker IDs recursively
-        const brokerIds = await getAllSubBrokerIds(user.id);
+        // Get all broker IDs recursively (using email as ID)
+        const brokerIds = await getAllSubBrokerIds(user.email);
         console.log('All broker IDs (including nested):', brokerIds);
 
         // Get all companies for all brokers
         const companiesQuery = query(
           collection(db, 'companies'),
-          where('invitedBy', 'in', brokerIds)
+          where('brokerId', 'in', brokerIds)
         );
         const companiesSnapshot = await getDocs(companiesQuery);
         console.log('Companies:', companiesSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
@@ -81,45 +67,28 @@ export const useBrokerStats = () => {
         console.log('Customers:', customersSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
         const activeMembers = customersSnapshot.size;
 
-        // Get all vehicles delivered this month by the broker and sub-brokers
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
+        // Get all sub-brokers (direct only)
+        const subBrokersQuery = query(
+          collection(db, 'brokers'),
+          where('parentBrokerId', '==', user.email)
+        );
+        const subBrokersSnapshot = await getDocs(subBrokersQuery);
+        const activeSubBrokers = subBrokersSnapshot.size;
 
+        // Get all delivered vehicles by the broker and sub-brokers
         const vehiclesQuery = query(
           collection(db, 'vehicles'),
           where('brokerId', 'in', brokerIds),
-          where('status', '==', 'delivered'),
-          where('deliveryDate', '>=', startOfMonth)
+          where('status', '==', 'delivered')
         );
         const vehiclesSnapshot = await getDocs(vehiclesQuery);
-        
-        let totalCommission = 0;
-
-        // Calculate commission for each vehicle
-        for (const vehicleDoc of vehiclesSnapshot.docs) {
-          const vehicle = vehicleDoc.data();
-          const broker = await getDocs(query(
-            collection(db, 'brokers'),
-            where('brokerId', '==', vehicle.brokerId)
-          ));
-          
-          if (broker.docs.length > 0) {
-            const brokerData = broker.docs[0].data();
-            if (vehicle.brokerId === user.id) {
-              // Main broker's commission
-              totalCommission += brokerData.commission || 250;
-            } else {
-              // Commission from sub-broker (difference between main broker and sub-broker commission)
-              totalCommission += (brokerData.commission || 250) - (brokerData.subBrokerCommission || 150);
-            }
-          }
-        }
+        const totalVehicles = vehiclesSnapshot.size;
 
         setStats({
           activeCompanies,
           activeMembers,
-          monthlyCommission: totalCommission
+          activeSubBrokers,
+          totalVehicles
         });
       } catch (err) {
         console.error('Error in fetchStats:', err);
@@ -127,10 +96,23 @@ export const useBrokerStats = () => {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
+    // Set up real-time listener for broker changes
+    const brokersQuery = query(
+      collection(db, 'brokers'),
+      where('parentBrokerId', '==', user.email)
+    );
+
+    const unsubscribe = onSnapshot(brokersQuery, () => {
+      fetchStats();
+    });
+
+    // Initial fetch
     fetchStats();
-  }, [user?.id]);
+
+    return () => unsubscribe();
+  }, [user?.email]);
 
   return { stats, loading, error };
 };

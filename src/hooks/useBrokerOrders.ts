@@ -14,32 +14,57 @@ export const useBrokerOrders = () => {
     if (!user?.id) return;
 
     setLoading(true);
-    // Query für alle Bestellungen von Unternehmen, die vom Broker eingeladen wurden
-    const q = query(
+    // Verwende eine Map, um Duplikate zu vermeiden
+    const ordersMap = new Map<string, VehicleRequestWithCompany>();
+
+    // Query für Bestellungen, bei denen der Broker als einladender Broker eingetragen ist
+    const qInvited = query(
       collection(db, 'vehicleRequests'),
       where('isOrder', '==', true),
       where('invitedByBrokerId', '==', user.id)
     );
-
-    const unsubscribe = onSnapshot(
-      q,
+    const unsubscribeInvited = onSnapshot(qInvited,
       (snapshot) => {
-        const ordersData: VehicleRequestWithCompany[] = [];
         snapshot.forEach((doc) => {
-          ordersData.push({ id: doc.id, ...doc.data() } as VehicleRequestWithCompany);
+          ordersMap.set(doc.id, { id: doc.id, ...doc.data() } as VehicleRequestWithCompany);
         });
-        setOrders(ordersData);
+        setOrders(Array.from(ordersMap.values()));
         setLoading(false);
         setError(null);
       },
       (err) => {
-        console.error('Error fetching broker orders:', err);
-        setError('Fehler beim Laden der Bestellungen');
+        console.error('Error fetching broker orders (invited):', err);
+        setError('Fehler beim Laden der Bestellungen (invited)');
         setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    // Query für Bestellungen der Unterbroker, bei denen der ParentBroker die ID des aktuellen Brokers besitzt
+    const qSubBroker = query(
+      collection(db, 'vehicleRequests'),
+      where('isOrder', '==', true),
+      where('parentBrokerId', '==', user.id)
+    );
+    const unsubscribeSubBroker = onSnapshot(qSubBroker,
+      (snapshot) => {
+        snapshot.forEach((doc) => {
+          ordersMap.set(doc.id, { id: doc.id, ...doc.data() } as VehicleRequestWithCompany);
+        });
+        setOrders(Array.from(ordersMap.values()));
+        setLoading(false);
+        setError(null);
+      },
+      (err) => {
+        console.error('Error fetching broker orders (subbroker):', err);
+        setError('Fehler beim Laden der Unterbroker-Bestellungen');
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribeInvited();
+      unsubscribeSubBroker();
+    };
   }, [user?.id]);
 
   return {

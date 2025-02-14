@@ -25,14 +25,14 @@ const ResetPassword = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-white/10 backdrop-blur-sm py-8 px-4 shadow-md rounded-3xl sm:px-10">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <h2 className="text-xl font-semibold text-white mb-4">
                 E-Mail wurde versendet
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-300">
                 Bitte überprüfen Sie Ihren Posteingang und folgen Sie den Anweisungen in der E-Mail.
               </p>
             </div>
@@ -43,18 +43,18 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Lock className="w-12 h-12 text-blue-500" />
+          <Lock className="w-12 h-12 text-white/90" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
           Passwort zurücksetzen
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white/10 backdrop-blur-sm py-8 px-4 shadow-md rounded-3xl sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
@@ -63,7 +63,7 @@ const ResetPassword = () => {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
                 E-Mail
               </label>
               <input
@@ -72,14 +72,14 @@ const ResetPassword = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full px-5 py-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 focus:ring-2 focus:ring-white/25 focus:border-transparent transition-colors border-0"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full flex justify-center py-4 px-5 rounded-xl text-base font-medium text-white bg-white/20 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/25 disabled:opacity-50 transition-all shadow-sm"
             >
               {isLoading ? 'Wird gesendet...' : 'Link zum Zurücksetzen senden'}
             </button>

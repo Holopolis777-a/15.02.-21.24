@@ -1,8 +1,8 @@
 [
   {
-    "origin": ["http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "https://vilocar1.web.app", "https://vilocar1.firebaseapp.com", "https://portal.vilocar.de"],
-    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "origin": ["https://portal.vilocar.de"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type", "Authorization"]
+    "responseHeader": ["Content-Type", "Access-Control-Allow-Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"]
   }
 ]

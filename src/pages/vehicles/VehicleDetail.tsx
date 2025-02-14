@@ -9,9 +9,11 @@ import VehicleGallery from './components/detail/VehicleGallery';
 import VehicleInfo from './components/detail/VehicleInfo';
 import VehicleConfiguration from './components/detail/VehicleConfiguration';
 import VehicleServices from './components/detail/VehicleServices';
+import VehicleFeatures from './components/detail/VehicleFeatures';
 import VehicleCosts, { getMonthlyRate } from './components/detail/VehicleCosts';
 import SalaryConversionCalculator from './components/detail/SalaryConversionCalculator';
 import VehicleRequestConfirmationDialog from '../../components/VehicleRequestConfirmationDialog';
+import EVInfoBox from '../../components/EVInfoBox';
 
 const VehicleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -269,6 +271,8 @@ const VehicleDetail: React.FC = () => {
             <div className="space-y-8">
               <VehicleGallery images={vehicle.images || []} />
               <VehicleInfo vehicle={vehicle} />
+              {vehicle.fuelType === 'Elektro' && <EVInfoBox vehicle={vehicle} />}
+              <VehicleFeatures vehicle={vehicle} />
               <VehicleServices services={vehicle.includedServices || []} />
             </div>
 

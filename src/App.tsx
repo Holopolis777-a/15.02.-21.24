@@ -17,6 +17,7 @@ const EmployeeVerification = React.lazy(() => import('./pages/verify/EmployeeVer
 const BrokerVerification = React.lazy(() => import('./pages/verify/BrokerVerification'));
 const EmployeeRegistration = React.lazy(() => import('./pages/register/EmployeeRegistration'));
 const CustomerRegistration = React.lazy(() => import('./pages/register/CustomerRegistration'));
+const EmployerRegistration = React.lazy(() => import('./pages/employer-registration'));
 const BrokerCustomers = React.lazy(() => import('./pages/broker-customers/BrokerCustomers'));
 
 // Import EmailVerification page
@@ -107,6 +108,11 @@ function App() {
         <Route path="/register/customer/:inviteId?" element={
           <React.Suspense fallback={<div>Loading...</div>}>
             <CustomerRegistration />
+          </React.Suspense>
+        } />
+        <Route path="/employer-registration" element={
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <EmployerRegistration />
           </React.Suspense>
         } />
 

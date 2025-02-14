@@ -17,15 +17,20 @@ const UserDropdownItem: React.FC<UserDropdownItemProps> = ({
   showArrow,
   variant = 'default'
 }) => {
-  const baseClasses = "w-full px-4 py-2 text-left text-sm flex items-center";
+  const baseClasses = "w-full px-4 py-3 text-left text-sm flex items-center cursor-pointer transition-colors duration-150";
   const variantClasses = {
-    default: "text-gray-700 hover:bg-gray-50",
+    default: "text-gray-700 hover:bg-gray-100",
     danger: "text-red-600 hover:bg-red-50"
   };
 
   return (
     <button
-      onClick={onClick}
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
       className={`${baseClasses} ${variantClasses[variant]} ${showArrow ? 'justify-between' : ''}`}
     >
       <div className="flex items-center">

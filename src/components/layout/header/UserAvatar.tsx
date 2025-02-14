@@ -1,5 +1,4 @@
 import React from 'react';
-import { User } from 'lucide-react';
 import { User as UserType } from '../../../types/auth';
 
 interface UserAvatarProps {
@@ -14,16 +13,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'sm' }) => {
     lg: 'w-12 h-12'
   };
 
-  return user?.avatarUrl ? (
+  return (user?.logoUrl && user.logoUrl.trim() !== '' && (user.logoUrl.startsWith('http://') || user.logoUrl.startsWith('https://'))) ? (
     <img
-      src={user.avatarUrl}
+      src={user.logoUrl}
       alt="Profile"
       className={`${sizeClasses[size]} rounded-full object-cover`}
     />
   ) : (
-    <div className={`${sizeClasses[size]} rounded-full bg-gray-100 flex items-center justify-center`}>
-      <User className={`${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} text-gray-400`} />
-    </div>
+    <div className={`${sizeClasses[size]} rounded-full border-2 border-gray-200 bg-gray-50`} />
   );
 };
 

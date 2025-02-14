@@ -8,7 +8,7 @@ const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Template IDs from Brevo
 const TEMPLATES = {
-  COMPANY_INVITATION: 5, // "Company Invitation" template ID
+  COMPANY_INVITATION: 23, // "Employer Invitation" template ID
   COMPANY_REMINDER: 6    // "Company Reminder" template ID
 };
 

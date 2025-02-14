@@ -34,6 +34,8 @@ export type RegularStatus =
 export type SalaryStatus = RegularStatus | 'salary_conversion_approved' | 'salary_conversion_rejected';
 
 export interface VehicleRequest {
+  brokerId?: string;
+  invitedByBrokerId?: string;
   orderNumber?: string;
   vehicleImage?: string;
   features?: {

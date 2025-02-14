@@ -73,6 +73,15 @@
         { "fieldPath": "isPrivate", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "brokerId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "deliveryDate", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

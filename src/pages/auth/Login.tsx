@@ -56,11 +56,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2 bg-gradient-to-br from-[#f5f0e6] to-[#fff8e8]">
+    <div className="min-h-screen grid md:grid-cols-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
       {/* Left side - Login Form */}
       <div className="flex flex-col justify-center px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="max-w-md w-full mx-auto">
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-md p-8 space-y-6">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-md p-8 space-y-6">
             <form className="space-y-8" onSubmit={handleSubmit}>
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl">
@@ -69,7 +69,7 @@ const Login = () => {
               )}
 
               <div className="space-y-3">
-                <label htmlFor="email" className="block text-base text-gray-600">
+                <label htmlFor="email" className="block text-base text-gray-300">
                   E-Mail
                 </label>
                 <input
@@ -80,13 +80,13 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full px-5 py-4 rounded-xl bg-[#f5f0e6] text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#c5d86d] focus:border-transparent transition-colors border-0"
+                  className="block w-full px-5 py-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 focus:ring-2 focus:ring-white/25 focus:border-transparent transition-colors border-0"
                   placeholder="ihre@email.de"
                 />
               </div>
 
               <div className="space-y-3">
-                <label htmlFor="password" className="block text-base text-gray-600">
+                <label htmlFor="password" className="block text-base text-gray-300">
                   Passwort
                 </label>
                 <input
@@ -97,7 +97,7 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-5 py-4 rounded-xl bg-[#f5f0e6] text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#c5d86d] focus:border-transparent transition-colors border-0"
+                  className="block w-full px-5 py-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 focus:ring-2 focus:ring-white/25 focus:border-transparent transition-colors border-0"
                   placeholder="••••••••"
                 />
               </div>
@@ -113,7 +113,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-4 px-5 rounded-xl text-base font-medium text-white bg-[#c5d86d] hover:bg-[#b3c55d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c5d86d] disabled:opacity-50 transition-all shadow-sm"
+                className="w-full flex justify-center py-4 px-5 rounded-xl text-base font-medium text-white bg-white/20 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/25 disabled:opacity-50 transition-all shadow-sm"
               >
                 {isLoading ? 'Wird angemeldet...' : 'Anmelden'}
               </button>
@@ -123,7 +123,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowAdminRegistration(true)}
-                className="w-full flex justify-center py-4 px-5 rounded-xl text-base font-medium text-gray-700 bg-[#f5f0e6] hover:bg-[#ede8de] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c5d86d] transition-all shadow-sm"
+                className="w-full flex justify-center py-4 px-5 rounded-xl text-base font-medium text-white bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/25 transition-all shadow-sm"
               >
                 Als Administrator registrieren
               </button>
@@ -133,7 +133,7 @@ const Login = () => {
       </div>
 
       {/* Right side - Logo and Welcome Text */}
-      <div className="hidden md:flex flex-col items-center justify-center p-12 bg-white/20 backdrop-blur-sm">
+      <div className="hidden md:flex flex-col items-center justify-center p-12 bg-white/5 backdrop-blur-sm">
         <div className="max-w-lg text-center space-y-12">
           {logoUrl && (
             <img 
@@ -143,10 +143,10 @@ const Login = () => {
             />
           )}
           <div className="space-y-6">
-            <h1 className="text-4xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-white">
               Herzlich Willkommen<br />bei VILOCAR
             </h1>
-            <p className="text-xl text-gray-700 leading-relaxed max-w-md mx-auto">
+            <p className="text-xl text-gray-300 leading-relaxed max-w-md mx-auto">
               Ihr Full-Service-Partner für<br />
               Firmenwagen, Gehaltsumwandlung<br />
               und Privatfahrzeuge

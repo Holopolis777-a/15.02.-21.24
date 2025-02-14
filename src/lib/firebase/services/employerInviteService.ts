@@ -1,34 +1,64 @@
-import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config';
 import { sendEmployerInvite } from '../../email/brokerEmails';
 
-export const inviteEmployer = async (email: string, brokerId: string) => {
+export const generateEmployerInviteLink = async (brokerId: string, email?: string) => {
   try {
-    // Create company document first
     const companyRef = await addDoc(collection(db, 'companies'), {
       status: 'pending',
       brokerId: brokerId,
-      createdAt: new Date(),
+      createdAt: serverTimestamp(),
+      email: email || null,
+      verificationId: null
+    });
+
+    const verificationRef = await addDoc(collection(db, 'verifications'), {
+      type: 'employer_invite',
+      email: email || null,
+      brokerId: brokerId,
+      companyId: companyRef.id,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+      verified: false
+    });
+
+    await updateDoc(companyRef, {
+      verificationId: verificationRef.id
+    });
+
+    return {
+      id: verificationRef.id,
+      companyId: companyRef.id
+    };
+  } catch (error) {
+    console.error('Error generating employer invite link:', error);
+    throw new Error('Fehler beim Generieren des Einladungslinks');
+  }
+};
+
+export const inviteEmployer = async (email: string, brokerId: string) => {
+  try {
+    const companyRef = await addDoc(collection(db, 'companies'), {
+      status: 'pending',
+      brokerId: brokerId,
+      createdAt: serverTimestamp(),
       email: email
     });
 
-    // Create verification document
     const verificationRef = await addDoc(collection(db, 'verifications'), {
       type: 'employer_invite',
       email,
       brokerId: brokerId,
       companyId: companyRef.id,
       status: 'pending',
-      createdAt: new Date(),
+      createdAt: serverTimestamp(),
       verified: false
     });
 
-    // Update company with verification ID
     await updateDoc(companyRef, {
       verificationId: verificationRef.id
     });
 
-    // Send invitation email
     await sendEmployerInvite(email, verificationRef.id);
 
     return verificationRef.id;

@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useAdminLogo } from '../../hooks/useAdminLogo';
 import { signOut } from '../../lib/auth';
 import UserAvatar from './header/UserAvatar';
-import UserDropdown from './header/UserDropdown';
+import { UserDropdown } from './header/UserDropdown';
 import DataCompletionModal from '../DataCompletionModal';
 import { ChevronDown } from 'lucide-react';
 
@@ -18,19 +18,25 @@ const Header = () => {
   const [isVehicleMenuOpen, setIsVehicleMenuOpen] = useState(false);
   const vehicleMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (vehicleMenuRef.current && !vehicleMenuRef.current.contains(event.target as Node)) {
         setIsVehicleMenuOpen(false);
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node) &&
+        !(event.target instanceof HTMLElement &&
+          (event.target.closest('.user-dropdown') || event.target.closest('.user-avatar-button')))
+      ) {
         setIsUserMenuOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -143,7 +149,7 @@ const Header = () => {
   const isVehiclePath = (path: string) => path.startsWith('/vehicles/');
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-10 bg-gray-100 shadow-sm">
+    <header className="fixed top-0 right-0 left-0 z-40 bg-gray-100 shadow-sm">
       <div className="max-w-[1400px] mx-auto">
         <div className="h-16 px-6 flex items-center justify-between">
           {/* User Menu and Settings on the Left */}
@@ -151,7 +157,7 @@ const Header = () => {
             <div>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors user-avatar-button"
               >
                 <UserAvatar user={user} />
               </button>
@@ -162,6 +168,8 @@ const Header = () => {
                   onProfileClick={handleProfileClick}
                   onCompanyDataClick={handleCompanyDataClick}
                   onSignOut={handleSignOut}
+                  anchorRect={userMenuRef.current ? userMenuRef.current.getBoundingClientRect() : null}
+                  dropdownRef={userDropdownRef}
                 />
               )}
             </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Settings, LogOut, Building2 } from 'lucide-react';
 import { User } from '../../../types/auth';
 import UserAvatar from './UserAvatar';
@@ -9,17 +10,40 @@ interface UserDropdownProps {
   onProfileClick: () => void;
   onCompanyDataClick: () => void;
   onSignOut: () => void;
+  anchorRect: DOMRect | null;
+  dropdownRef: React.RefObject<HTMLDivElement>;
 }
 
 const UserDropdown: React.FC<UserDropdownProps> = ({
   user,
   onProfileClick,
   onCompanyDataClick,
-  onSignOut
+  onSignOut,
+  anchorRect,
+  dropdownRef
 }) => {
   const showCompanyData = user?.role === 'employer' || user?.role === 'broker';
-  return (
-    <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
+  const dropdownStyle: React.CSSProperties = anchorRect
+    ? { position: "fixed", top: `${anchorRect.bottom + 4}px`, left: `${anchorRect.left}px` }
+    : {};
+    
+  return createPortal(
+    <div 
+      ref={dropdownRef} 
+      onMouseDown={(e) => e.stopPropagation()} 
+      onMouseUp={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()} 
+      style={{
+        position: 'fixed',
+        zIndex: 999999,
+        width: '18rem',
+        top: anchorRect ? `${anchorRect.bottom + 4}px` : '0',
+        left: anchorRect ? `${anchorRect.left}px` : '0',
+        transform: 'translateZ(0)',
+        willChange: 'transform'
+      }} 
+      className="user-dropdown bg-white rounded-lg shadow-lg py-2 border border-gray-200 overflow-visible"
+    >
       {/* User Info */}
       <div className="px-4 py-3 border-b">
         <div className="flex items-center space-x-3">
@@ -32,7 +56,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
           </div>
         </div>
       </div>
-
+  
       {/* Menu Items */}
       <div className="py-1">
         <UserDropdownItem
@@ -56,8 +80,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
           variant="danger"
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
-export default UserDropdown;
+export { UserDropdown };

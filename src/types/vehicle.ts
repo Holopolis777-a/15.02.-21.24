@@ -1,4 +1,9 @@
+export type FuelType = 'Benzin' | 'Diesel' | 'Hybrid' | 'Elektro';
+export type TransmissionType = 'Automatik' | 'Manuell';
+export type VehicleBodyType = 'Limousine' | 'Kombi' | 'SUV' | 'Coupé' | 'Cabrio';
+
 export interface Vehicle {
+  bodyType?: VehicleBodyType;
   id: string;
   brand: string;
   model: string;
@@ -8,10 +13,15 @@ export interface Vehicle {
   price?: number;
   category?: string;
   categories?: string[];
-  fuelType?: string;
+  fuelType?: FuelType;
   power?: number;
   consumption?: string;
   co2?: string;
+  engineSize?: number;
+  batteryCapacity?: number;
+  energyConsumption?: number;
+  maxACChargingPower?: number;
+  maxDCChargingPower?: number;
   description?: string;
   standardFeatures?: string[];
   additionalFeatures?: string[];
@@ -21,8 +31,8 @@ export interface Vehicle {
   priceMatrix?: PriceMatrixEntry[];
   createdAt?: Date;
   promotionText?: string;
-  range?: string;
-  transmission?: string;
+  range?: number;
+  transmission?: TransmissionType;
   isAvailable?: boolean;
   deliveryTime?: string;
   customColors?: CustomColor[];
@@ -31,7 +41,6 @@ export interface Vehicle {
   oneTimeCosts?: OneTimeCost[];
   promotionColor?: string;
   co2Emissions?: string;
-  electricRange?: string;
 }
 
 export interface OneTimeCost {

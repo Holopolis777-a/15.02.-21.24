@@ -9,7 +9,10 @@ interface TechnicalDataProps {
 const TechnicalData: React.FC<TechnicalDataProps> = ({ data, onChange }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const newValue = type === 'number' ? parseFloat(value) : value;
+    let newValue: string | number = value;
+    if (type === 'number') {
+      newValue = value === '' ? '' : parseFloat(value);
+    }
     onChange({ ...data, [name]: newValue });
   };
 
@@ -85,7 +88,7 @@ const TechnicalData: React.FC<TechnicalDataProps> = ({ data, onChange }) => {
             name="power"
             required
             min="1"
-            value={data.power || ''}
+            value={data.power?.toString() || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -101,7 +104,7 @@ const TechnicalData: React.FC<TechnicalDataProps> = ({ data, onChange }) => {
             name="engineSize"
             min="1"
             step="1"
-            value={data.engineSize || ''}
+            value={data.engineSize?.toString() || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -122,22 +125,85 @@ const TechnicalData: React.FC<TechnicalDataProps> = ({ data, onChange }) => {
           />
         </div>
 
-        {/* Reichweite (nur bei Elektrofahrzeugen) */}
+        {/* Elektrofahrzeug-spezifische Felder */}
         {data.fuelType === 'Elektro' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Reichweite (km)
-            </label>
-            <input
-              type="number"
-              name="range"
-              min="1"
-              max="2000"
-              value={data.range || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Reichweite (km) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="range"
+                required
+                min="1"
+                max="2000"
+                value={data.range?.toString() || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Batteriekapazität (kWh) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="batteryCapacity"
+                required
+                min="1"
+                step="0.1"
+                value={data.batteryCapacity?.toString() || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Energieverbrauch (kWh/100km) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="energyConsumption"
+                required
+                min="0.1"
+                step="0.1"
+                value={data.energyConsumption?.toString() || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Max. AC-Ladeleistung (kW) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="maxACChargingPower"
+                required
+                min="1"
+                step="0.1"
+                value={data.maxACChargingPower?.toString() || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Max. DC-Ladeleistung (kW) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="maxDCChargingPower"
+                required
+                min="1"
+                step="0.1"
+                value={data.maxDCChargingPower?.toString() || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -14,9 +14,20 @@ export const firebaseConfig = {
   measurementId: "G-SWR3CKVKXK"
 };
 
-// Initialize Firebase
 export const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
-export const db = getFirestore(app);
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+export const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED
+});
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+if (typeof window !== 'undefined') {
+  enableIndexedDbPersistence(db).catch((error: { code: string }) => {
+    if (error.code === 'failed-precondition') {
+      console.error('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+    } else if (error.code === 'unimplemented') {
+      console.error('The current browser does not support persistence.');
+    }
+  });
+}
