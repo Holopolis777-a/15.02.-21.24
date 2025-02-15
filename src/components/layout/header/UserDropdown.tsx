@@ -2,7 +2,6 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Settings, LogOut, Building2 } from 'lucide-react';
 import { User } from '../../../types/auth';
-import UserAvatar from './UserAvatar';
 import UserDropdownItem from './UserDropdownItem';
 
 interface UserDropdownProps {
@@ -23,16 +22,13 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   dropdownRef
 }) => {
   const showCompanyData = user?.role === 'employer' || user?.role === 'broker';
-  const dropdownStyle: React.CSSProperties = anchorRect
-    ? { position: "fixed", top: `${anchorRect.bottom + 4}px`, left: `${anchorRect.left}px` }
-    : {};
     
   return createPortal(
     <div 
-      ref={dropdownRef} 
-      onMouseDown={(e) => e.stopPropagation()} 
+      ref={dropdownRef}
+      onMouseDown={(e) => e.stopPropagation()}
       onMouseUp={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()} 
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
         zIndex: 999999,
@@ -42,19 +38,14 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         transform: 'translateZ(0)',
         willChange: 'transform'
       }} 
-      className="user-dropdown bg-white rounded-lg shadow-lg py-2 border border-gray-200 overflow-visible"
+      className="user-dropdown bg-white rounded-lg shadow-lg py-2 border border-gray-200"
     >
       {/* User Info */}
       <div className="px-4 py-3 border-b">
-        <div className="flex items-center space-x-3">
-          <UserAvatar user={user} size="lg" />
-          <div>
-            <div className="font-medium text-gray-900">
-              {user?.firstName} {user?.lastName}
-            </div>
-            <div className="text-sm text-gray-500">{user?.email}</div>
-          </div>
+        <div className="font-medium text-gray-900">
+          {user?.firstName} {user?.lastName}
         </div>
+        <div className="text-sm text-gray-500">{user?.email}</div>
       </div>
   
       {/* Menu Items */}

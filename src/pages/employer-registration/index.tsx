@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addDoc, collection, doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, db } from '../../lib/firebase/config';
+import { auth, db, storage } from '../../lib/firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Upload, X, Check } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -53,7 +54,11 @@ const EmployerRegistration = () => {
     if (file && file.size <= 1024 * 1024 && (file.type === "image/png" || file.type === "image/jpeg")) {
       setLogo(file);
     } else {
-      alert("Bitte laden Sie ein PNG oder JPG-Bild mit maximal 1MB Größe hoch.");
+      toast({
+        title: "Fehler beim Logo-Upload",
+        description: "Bitte laden Sie ein PNG oder JPG-Bild mit maximal 1MB Größe hoch.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -165,7 +170,6 @@ const EmployerRegistration = () => {
       setLoading(true);
       console.log('Starting registration process...');
 
-      // Verifikation prüfen
       const verificationRef = doc(db, 'verifications', inviteId);
       const verificationDoc = await getDoc(verificationRef);
 
@@ -182,20 +186,36 @@ const EmployerRegistration = () => {
         throw new Error('Ungültige Broker-Zuordnung');
       }
 
-      // Benutzer erstellen
+      // Upload logo if exists
+      let logoUrl = '';
+      if (logo) {
+        try {
+          const logoRef = ref(storage, `company-logos/${Date.now()}-${logo.name}`);
+          await uploadBytes(logoRef, logo);
+          logoUrl = await getDownloadURL(logoRef);
+          console.log('Logo uploaded successfully:', logoUrl);
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+          toast({
+            title: "Warnung",
+            description: "Logo konnte nicht hochgeladen werden. Die Registrierung wird trotzdem fortgesetzt.",
+            variant: "destructive"
+          });
+        }
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('User account created successfully', user.uid);
 
-      // Verifikation aktualisieren
       await updateDoc(verificationRef, {
         status: 'in_progress',
         userId: user.uid,
         updatedAt: serverTimestamp()
       });
 
-      // Unternehmen erstellen
       let companyId: string;
+      console.log('Broker ID:', brokerId);
       const companyRef = await addDoc(collection(db, 'companies'), {
         name: companyName,
         status: 'active',
@@ -211,7 +231,8 @@ const EmployerRegistration = () => {
         zipCode: zipCode,
         city: city,
         phone: phone,
-        contactPerson: contactPerson
+        contactPerson: contactPerson,
+        logoUrl: logoUrl // Add the logo URL to company document
       });
 
       companyId = companyRef.id;
@@ -246,13 +267,16 @@ const EmployerRegistration = () => {
         companyId: companyId
       });
 
+      // Benutzer ausloggen
+      await signOut(auth);
+
       toast({
         title: "Registrierung erfolgreich",
-        description: "Ihr Unternehmenskonto wurde erfolgreich erstellt."
+        description: "Sie wurden erfolgreich registriert - Sie können sich jetzt einloggen"
       });
 
-      // Redirect to dashboard
-      navigate('/dashboard');
+      // Zur Login-Seite weiterleiten
+      navigate('/auth/login');
     } catch (error) {
       console.error('Registration error:', error);
       let errorMessage = 'Ein unerwarteter Fehler ist aufgetreten.';

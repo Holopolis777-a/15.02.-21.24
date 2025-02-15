@@ -104,9 +104,7 @@ export const useAuthStore = create<AuthState>((set) => {
             }
           }
 
-          // Create user object with available data
           const user: User = {
-            ...userData,
             id: firebaseUser.uid,
             email: firebaseUser.email || userData?.email || '',
             role: role || userData?.role || 'customer',

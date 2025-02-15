@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Users, Phone, Mail, Clock } from 'lucide-react';
+import { Building2, Users, Phone, Mail, Clock, User, Briefcase } from 'lucide-react';
 import { useBrokerCompanies } from '../../../hooks/useBrokerCompanies';
 
 const BrokerCompaniesList = () => {
@@ -38,7 +38,7 @@ const BrokerCompaniesList = () => {
                 {company.logoUrl ? (
                   <img
                     src={company.logoUrl}
-                    alt={company.companyName || company.email}
+                    alt={company.companyName || company.name || company.email}
                     className="w-12 h-12 rounded-lg object-contain bg-gray-50"
                   />
                 ) : (
@@ -48,7 +48,7 @@ const BrokerCompaniesList = () => {
                 )}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {company.companyName || company.email}
+                    {company.companyName || company.name || company.email}
                   </h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-500">
@@ -71,10 +71,24 @@ const BrokerCompaniesList = () => {
             </div>
 
             <div className="mt-4 space-y-3">
+              {company.industry && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  <span>{company.industry}</span>
+                </div>
+              )}
+
               <div className="flex items-center text-sm text-gray-600">
                 <Users className="w-4 h-4 mr-2" />
                 <span>{company.employeeCount || '0'} Mitarbeiter</span>
               </div>
+
+              {company.contactPerson && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <User className="w-4 h-4 mr-2" />
+                  <span>{company.contactPerson}</span>
+                </div>
+              )}
 
               <div className="flex items-center text-sm text-gray-600">
                 <Mail className="w-4 h-4 mr-2" />
@@ -101,14 +115,22 @@ const BrokerCompaniesList = () => {
               )}
             </div>
 
-            {company.address && (
-              <div className="mt-4 pt-4 border-t">
-                <div className="text-sm text-gray-600">
-                  {company.address.street}<br />
-                  {company.address.postalCode} {company.address.city}
-                </div>
+            <div className="mt-4 pt-4 border-t">
+              <div className="text-sm text-gray-600">
+                {/* Verwende entweder das address Objekt oder die einzelnen Felder */}
+                {company.address ? (
+                  <>
+                    {company.address.street}<br />
+                    {company.address.postalCode} {company.address.city}
+                  </>
+                ) : (
+                  <>
+                    {company.street}<br />
+                    {company.zipCode} {company.city}
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       ))}

@@ -6,7 +6,7 @@ export interface User {
   email: string;
   role: UserRole;
   companyId?: string;
-  employerCompanyId?: string;  // New field for the employer's company ID
+  employerCompanyId?: string;
   brokerId?: string;
   firstName?: string;
   lastName?: string;
@@ -19,7 +19,6 @@ export interface User {
   mobileNumber?: string;
   isProfileComplete?: boolean;
   portalType?: 'normal' | 'salary';
-  logoUrl?: string;
   phone?: string;
   status?: UserStatus;
   inviteId?: string;

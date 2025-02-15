@@ -197,14 +197,9 @@ const Navigation = () => {
           <div className="relative group" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center space-x-3 bg-white/10 rounded-full pl-2 pr-4 py-2 text-white hover:bg-white/20 transition-colors duration-300 ease-in-out"
+              className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2 text-white hover:bg-white/20 transition-colors duration-300 ease-in-out"
             >
-              <img
-                className="h-8 w-8 rounded-full border-2 border-white"
-                src={user?.logoUrl || "https://i.pravatar.cc/32"}
-                alt="User avatar"
-              />
-              <span className="text-sm font-medium">{user?.firstName || "Benutzer"}</span>
+              <span className="text-sm font-medium">{user?.firstName} {user?.lastName}</span>
               <ChevronDown className="h-4 w-4" />
             </button>
             <div className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-md shadow-lg py-1 hidden group-hover:block transition-all duration-300 ease-in-out border border-white/20 backdrop-blur-sm">

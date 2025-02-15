@@ -4,31 +4,19 @@ import { sendEmployerInvite } from '../../email/brokerEmails';
 
 export const generateEmployerInviteLink = async (brokerId: string, email?: string) => {
   try {
-    const companyRef = await addDoc(collection(db, 'companies'), {
-      status: 'pending',
-      brokerId: brokerId,
-      createdAt: serverTimestamp(),
-      email: email || null,
-      verificationId: null
-    });
-
     const verificationRef = await addDoc(collection(db, 'verifications'), {
       type: 'employer_invite',
       email: email || null,
       brokerId: brokerId,
-      companyId: companyRef.id,
+      companyId: null,
       status: 'pending',
       createdAt: serverTimestamp(),
       verified: false
     });
-
-    await updateDoc(companyRef, {
-      verificationId: verificationRef.id
-    });
-
+  
     return {
       id: verificationRef.id,
-      companyId: companyRef.id
+      companyId: null
     };
   } catch (error) {
     console.error('Error generating employer invite link:', error);
@@ -41,6 +29,7 @@ export const inviteEmployer = async (email: string, brokerId: string) => {
     const companyRef = await addDoc(collection(db, 'companies'), {
       status: 'pending',
       brokerId: brokerId,
+      invitedBy: brokerId,
       createdAt: serverTimestamp(),
       email: email
     });
